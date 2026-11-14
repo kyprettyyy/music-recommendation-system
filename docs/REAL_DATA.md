@@ -2,14 +2,14 @@
 
 Use Python 3.11 and install `requirements.txt`. All paths below are examples relative to the repository root. Use absolute paths for environment variables. The extraction command refuses to overwrite existing files and skips redundant spectrogram images.
 
-## Prepare supplied archives
+## Prepare the dataset
 
 ```powershell
 python scripts/prepare_gtzan.py "PATH_TO_TRAIN/gtzan.zip" artifacts/train
 python scripts/prepare_gtzan.py "PATH_TO_TEST/gtzan_test.zip" artifacts/test
 ```
 
-This produces `artifacts/train/GTZAN/genres_original`, `artifacts/test/GTZAN_TEST/genres_original`, raw CSVs and converted `_final.csv` annotations for the historical loader. The restored commands use raw CSV column names directly. A full archive has 1000 audio files; the split archives have 800 and 200. Their training/test filenames do not overlap, but artist and recording leakage has not been audited. The split training ZIP also retains the complete 3-second feature CSV; do not assume it is a properly split training table.
+This produces `artifacts/train/GTZAN/genres_original`, `artifacts/test/GTZAN_TEST/genres_original`, raw CSVs and converted `_final.csv` annotations for the dataset loader. The import commands use raw CSV column names directly. A full archive has 1000 audio files; the split archives have 800 and 200. Their training/test filenames do not overlap, but artist and recording leakage has not been audited. The split training ZIP also retains the complete 3-second feature CSV; do not assume it is a properly split training table.
 
 ## Train and evaluate
 
@@ -20,7 +20,7 @@ python scripts/train_audio.py evaluate --annotations artifacts/test/GTZAN_TEST/f
 
 Training reserves a seeded 10% validation subset of the supplied training CSV. Checkpoint selection uses that validation subset; held-out test data are evaluated separately. This is a basic recording-level split, not a guarantee of artist-independent generalization. Use `--device cuda` only with a compatible CUDA installation. Broken audio files fail visibly; repair or explicitly exclude them from the annotations before training rather than silently skipping them.
 
-The restored scripts preserve historical MFCC defaults to keep the supplied checkpoint compatible. Torchaudio warns that some mel filters are zero because the original default FFT size is small. Improving this requires retraining and validating the feature/network contract. Checkpoints are loaded with `weights_only=True`; do not use untrusted model files.
+The scripts use a shared MFCC configuration for training and inference. Torchaudio warns that some mel filters are zero because the original default FFT size is small. Improving this requires retraining and validating the feature/network contract. Checkpoints are loaded with `weights_only=True`; do not use untrusted model files.
 
 ## Import a real catalog
 
@@ -39,4 +39,4 @@ Create the parent `artifacts` directory first. For browser playback, copy the im
 
 Optional lyric input is a UTF-8 CSV with columns `filename,lyrics`. Supply it with `import_catalog ... --lyrics path/to/lyrics.csv` in an empty database. The command trains vectors on the supplied lyric corpus when `build_features` runs. Real GTZAN has no provided lyric corpus or human interaction histories. With no lyrics, lyric vectors remain empty; with no interaction overlap, collaborative scores are unavailable. Explicit genre selection enables audio-based cold start. Real user plays and favorites gradually supply feedback.
 
-`build_features` without `--checkpoint` can produce lyric-only features. `build_features --demo` is reserved for synthetic catalogs; it does not use a trained audio network. Never describe demo score vectors as model inference.
+`build_features` without `--checkpoint` can produce lyric-only features. `build_features --demo` is reserved for synthetic catalogs; it does not use a trained audio network. Demo score vectors are generated rather than inferred.

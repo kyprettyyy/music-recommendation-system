@@ -1,14 +1,25 @@
 # Multimodal Music Recommendation System
 
-[中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Validation](docs/VALIDATION.md) · [Provenance](THIRD_PARTY.md)
+A Django music recommendation application combining listening behavior, lyric embeddings, and audio genre features. Users can browse tracks, search the catalog, save favorites, and receive personalized top-five recommendations.
 
-Django music recommendation app combining implicit-feedback collaborative filtering, Word2Vec lyric embeddings and AlexNet/MFCC audio genre features. Search, persistent favorites, listening history, account registration/login and explainable top-five rankings are available.
+## Features
 
-The supplied 2022 project implemented audio classification and genre-based ranking. Hybrid ranking and the current application were added during a November 2026 restoration based on the supplied résumé and course report. See [claim mapping](docs/RESUME_MAPPING.md). The repository preserves the original author's supplied README and credits.
+- User registration, login, and persistent favorites.
+- Track search by title, artist, and genre.
+- Playback history and implicit-feedback collaborative filtering.
+- Skip-gram Word2Vec lyric embeddings and cosine similarity.
+- AlexNet genre classification from MFCC audio features.
+- Hybrid rankings with a breakdown of each recommendation score.
 
-## Run the self-contained demo
+## Recommendation pipeline
 
-Python 3.11 is the tested runtime. Windows users can run `start-demo.cmd` for setup and launch (network required on first setup). From this repository directory:
+The recommender combines user-based collaborative filtering, lyric similarity, and audio similarity with default weights of 0.4, 0.3, and 0.3. It adjusts the weights when a feature is unavailable, excludes consumed tracks, and uses popularity or an explicit genre preference for cold starts.
+
+Audio is converted to mono at 22,050 Hz, cropped or padded to five seconds, and transformed into 128 MFCC coefficients. An AlexNet-style network produces scores for ten music genres. Word2Vec maps lyrics to 32-dimensional track vectors.
+
+## Quick start
+
+Use Python 3.11. On Windows, run `start-demo.cmd`, or execute:
 
 ```powershell
 python -m venv .venv
@@ -20,33 +31,25 @@ python recommend/manage.py build_features --demo
 python recommend/manage.py runserver
 ```
 
-Open http://127.0.0.1:8000/ . Play a track or favorite it, then refresh recommendations. Demo tracks are original one-second tones with fictional lyrics and synthetic listener histories. Demo audio scores are synthetic; lyric vectors are actually trained using skip-gram Word2Vec. They demonstrate execution, not music recommendation quality. `seed_demo` requires an empty database; feature building can be rerun. An exhausted catalog may return fewer than five unseen tracks.
+Open `http://127.0.0.1:8000/`. Play or favorite a track, then refresh recommendations.
 
-The app operates without PyTorch in demo mode. Guest preferences persist in the browser session; account preferences follow a registered user across sessions. Guest activity is not automatically merged on login. Django admin supports track and interaction management after `python recommend/manage.py createsuperuser`.
+The demo includes generated tones, fictional lyrics, and sample listener histories. Demo audio scores are synthetic; Word2Vec embeddings are trained from the demo lyrics. For real audio, install `requirements.txt` and follow the [data setup guide](docs/REAL_DATA.md).
 
-## Real audio and lyrics
+## Project structure
 
-Install full dependencies with `python -m pip install -r requirements.txt`. Obtain compatible trusted weights and GTZAN separately; they are excluded from this repository. Detailed [data and training instructions](docs/REAL_DATA.md) cover ZIP extraction, CSV conversion, catalog import, lyric import, feature building, training and evaluation. Real catalog import requires a separate empty database.
+```text
+recommend/music/engine.py      Hybrid recommendation scoring
+recommend/music/audio.py       MFCC extraction and audio inference
+recommend/music/nn/            AlexNet and dataset loader
+recommend/music/management/    Catalog and feature commands
+recommend/music/templates/     Web pages
+scripts/                       Data preparation and model training
+```
 
-GTZAN has no supplied lyrics or real user interaction history. Word2Vec and collaborative filtering cannot establish real-world quality without those data. Missing features are omitted and available weights are normalized. No lyrics are fabricated for real GTZAN tracks.
-
-## Verification
+## Tests
 
 ```powershell
 python recommend/manage.py test music
-python recommend/manage.py check
 ```
 
-Ten automated tests cover collaborative ranking, lyric similarity, genre preference, cold start, exclusion of consumed tracks, private favorites, account persistence, CSRF, bad requests and stale feature indexes. A real 200-file audio compatibility run and a small one-epoch training smoke test completed. These do not establish independent recommendation quality; see [validation limits](docs/VALIDATION.md).
-
-## Repository layout
-
-- `recommend/music/engine.py`: hybrid scoring independent of Django.
-- `recommend/music/api.py`, `models.py`, `templates/hybrid.html`: current web app.
-- `recommend/music/audio.py`, `nn/net.py`: MFCC and AlexNet inference.
-- `recommend/music/management/commands/`: import, demo and feature commands.
-- `scripts/`: safe ZIP preparation and reproducible audio training/evaluation.
-- `recommend.ipynb`, legacy views/templates/static assets: historical material; the active URL table uses the restored app.
-- `picture/`: historical screenshots and diagrams, not screenshots of the restored UI.
-
-Local study defaults to debug mode. Configure `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS` separately for deployment. Optional `MUSIC_DATABASE_PATH` and `MUSIC_FEATURE_PATH` keep independent experiments isolated. No production deployment has been assessed. No blanket license is assigned to third-party material.
+[中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Data and training](docs/REAL_DATA.md) · [Acknowledgements](THIRD_PARTY.md)
