@@ -1,0 +1,11 @@
+# Suggested local reproduction environment: Python 3.10
+Django>=4.2,<5
+torch==2.2.2
+torchaudio==2.2.2
+numpy<2
+pandas>=1.5,<3
+matplotlib>=3.6,<4
+soundfile>=0.12
+jupyterlab>=4,<5
+tensorboard
+torchsummary

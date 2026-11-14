@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+*.sqlite3
+*.pth
+*.wav
+*.mp3
+*.zip
+.ipynb_checkpoints/
+runs/
+.idea/
+.vscode/
+recommend/music/static/GTZAN/
