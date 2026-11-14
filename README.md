@@ -1,52 +1,52 @@
-# Music Recommendation System
+# Multimodal Music Recommendation System
 
-[中文说明](README.zh-CN.md)
+[中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Validation](docs/VALIDATION.md) · [Provenance](THIRD_PARTY.md)
 
-A Django music-player application with an AlexNet-style PyTorch genre classifier and content-based top-five recommendations. This repository organizes a supplied 2022-era project archive; see [provenance](THIRD_PARTY.md) for the original material and acknowledgements.
+Django music recommendation app combining implicit-feedback collaborative filtering, Word2Vec lyric embeddings and AlexNet/MFCC audio genre features. Search, persistent favorites, listening history, account registration/login and explainable top-five rankings are available.
 
-## Implemented pipeline
+The supplied 2022 project implemented audio classification and genre-based ranking. Hybrid ranking and the current application were added during a November 2026 restoration based on the supplied résumé and course report. See [claim mapping](docs/RESUME_MAPPING.md). The repository preserves the original author's supplied README and credits.
 
-Audio → mono / 22,050 Hz → crop or pad to five seconds → 128 MFCC coefficients (`log_mels=True`) → AlexNet-style CNN → ten genre scores → rank 20 randomly sampled candidates by the preferred genre's raw model score → return the top five tracks.
+## Run the self-contained demo
 
-Genres: blues, classical, country, disco, hiphop, jazz, metal, pop, reggae, rock. Random playlists and random same-genre playlists are also implemented. Scores are logits, not calibrated probabilities. This archive contains no demonstrated collaborative filtering, lyric embeddings, Word2Vec or multimodal fusion implementation.
-
-![Historical player screenshot](picture/前端展示页面.png)
-
-## Layout
-
-- `recommend/`: Django application, templates and static player assets.
-- `recommend/music/nn/`: network, audio dataset loader, inference and annotation CSV.
-- `recommend.ipynb`: historical training notebook, with outputs removed and an obvious validation-batch bug corrected.
-- `picture/`: historical architecture diagrams and screenshots.
-- `README.original.md`: original supplied description and credits.
-- `docs/CLEANUP.md`: archive review and reproduction limitations.
-
-## Local setup
-
-Use Python 3.10 in a dedicated virtual environment. The proposed package versions are a reproduction starting point, not a verified lockfile; this historical project is intended for local study.
+Python 3.11 is the tested runtime. Windows users can run `start-demo.cmd` for setup and launch (network required on first setup). From this repository directory:
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-core.txt
+python recommend/manage.py migrate
+python recommend/manage.py seed_demo
+python recommend/manage.py build_features --demo
+python recommend/manage.py runserver
 ```
 
-Obtain GTZAN separately and place its genre directories under `recommend/music/static/GTZAN/genres_original/`. For example: `.../genres_original/blues/blues.00000.wav`. The bundled annotation CSV uses its original column order (filename in column 2, genre in the penultimate column, integer genre label last).
+Open http://127.0.0.1:8000/ . Play a track or favorite it, then refresh recommendations. Demo tracks are original one-second tones with fictional lyrics and synthetic listener histories. Demo audio scores are synthetic; lyric vectors are actually trained using skip-gram Word2Vec. They demonstrate execution, not music recommendation quality. `seed_demo` requires an empty database; feature building can be rerun. An exhausted catalog may return fewer than five unseen tracks.
 
-Place a trusted compatible state-dict checkpoint at `recommend/music/nn/best_model_okk.pth`, or set `MUSIC_MODEL_PATH` to its absolute path. Original local weights have been retained outside this repository. Never load untrusted pickle-based checkpoints. Model dimensions must match the 128-MFCC, five-second preprocessing and `net.py`.
+The app operates without PyTorch in demo mode. Guest preferences persist in the browser session; account preferences follow a registered user across sessions. Guest activity is not automatically merged on login. Django admin supports track and interaction management after `python recommend/manage.py createsuperuser`.
+
+## Real audio and lyrics
+
+Install full dependencies with `python -m pip install -r requirements.txt`. Obtain compatible trusted weights and GTZAN separately; they are excluded from this repository. Detailed [data and training instructions](docs/REAL_DATA.md) cover ZIP extraction, CSV conversion, catalog import, lyric import, feature building, training and evaluation. Real catalog import requires a separate empty database.
+
+GTZAN has no supplied lyrics or real user interaction history. Word2Vec and collaborative filtering cannot establish real-world quality without those data. Missing features are omitted and available weights are normalized. No lyrics are fabricated for real GTZAN tracks.
+
+## Verification
 
 ```powershell
-cd recommend
-python manage.py migrate
-python manage.py runserver
+python recommend/manage.py test music
+python recommend/manage.py check
 ```
 
-Open http://127.0.0.1:8000/project . The inference module loads audio metadata and the model at import, so Django commands require the data, dependencies and checkpoint first. Local development defaults to debug mode; production deployment requires separate review and configuration. Supported settings: `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS`.
+Ten automated tests cover collaborative ranking, lyric similarity, genre preference, cold start, exclusion of consumed tracks, private favorites, account persistence, CSRF, bad requests and stale feature indexes. A real 200-file audio compatibility run and a small one-epoch training smoke test completed. These do not establish independent recommendation quality; see [validation limits](docs/VALIDATION.md).
 
-## Training and validation limits
+## Repository layout
 
-The notebook retains historical experiments and requires adapting train/test paths, annotations, device settings and optional packages. A subsequent ZIP inspection found 800 training recordings and 200 test recordings plus raw test annotations. The notebook expects a processed `_final.csv` file, so the raw annotations require conversion to the loader schema. Historical logs do not establish independently verified accuracy. This cleanup has not retrained the model or verified full audio inference.
+- `recommend/music/engine.py`: hybrid scoring independent of Django.
+- `recommend/music/api.py`, `models.py`, `templates/hybrid.html`: current web app.
+- `recommend/music/audio.py`, `nn/net.py`: MFCC and AlexNet inference.
+- `recommend/music/management/commands/`: import, demo and feature commands.
+- `scripts/`: safe ZIP preparation and reproducible audio training/evaluation.
+- `recommend.ipynb`, legacy views/templates/static assets: historical material; the active URL table uses the restored app.
+- `picture/`: historical screenshots and diagrams, not screenshots of the restored UI.
 
-## Credit
-
-See [THIRD_PARTY.md](THIRD_PARTY.md) and [the original README](README.original.md). No new license is assigned to the original material.
+Local study defaults to debug mode. Configure `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS` separately for deployment. Optional `MUSIC_DATABASE_PATH` and `MUSIC_FEATURE_PATH` keep independent experiments isolated. No production deployment has been assessed. No blanket license is assigned to third-party material.

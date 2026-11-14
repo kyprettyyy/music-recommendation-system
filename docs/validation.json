@@ -1,0 +1,29 @@
+{
+  "automated_tests": 10,
+  "django_check": "passed",
+  "migration_check": "no changes",
+  "demo": {
+    "tracks": 20,
+    "synthetic_users": 12,
+    "word2vec": "trained; 32 dimensions"
+  },
+  "audio_compatibility": {
+    "count": 200,
+    "accuracy": 1.0,
+    "loss": 0.007947395078372211
+  },
+  "training_smoke": {
+    "validation_history": [
+      {
+        "epoch": 1,
+        "count": 1,
+        "accuracy": 0.0,
+        "loss": 2.242400646209717
+      }
+    ],
+    "train_count": 3,
+    "validation_count": 1,
+    "note": "Validation drawn only from training CSV. Evaluate held-out test CSV separately."
+  },
+  "caveat": "The supplied checkpoint training provenance is unknown; the compatibility result is not an independently held-out accuracy benchmark."
+}

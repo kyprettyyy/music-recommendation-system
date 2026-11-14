@@ -1,0 +1,4 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>登录音乐推荐系统</title>
+<body><main><h1>登录</h1><p>登录后，收藏与播放偏好将保存在你的账号中。访客期间的偏好保留在访客会话，不自动合并。</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">登录</button></form>
+<p><a href="/accounts/signup/">注册账号</a> · <a href="/">返回曲库</a></p></main></body></html>

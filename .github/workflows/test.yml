@@ -1,0 +1,17 @@
+name: Test hybrid recommender
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements-core.txt
+      - run: python recommend/manage.py test music
+      - run: python recommend/manage.py migrate --noinput
+      - run: python recommend/manage.py seed_demo
+      - run: python recommend/manage.py build_features --demo
+      - run: python recommend/manage.py check

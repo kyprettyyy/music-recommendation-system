@@ -12,3 +12,7 @@ runs/
 .idea/
 .vscode/
 recommend/music/static/GTZAN/
+
+data/features.json
+artifacts/
+.dev-secret

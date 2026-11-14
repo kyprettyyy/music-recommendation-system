@@ -20,7 +20,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY') or __import__('secrets').token_urlsafe(50)
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    # Persist the local development key so sessions survive server restarts.
+    key_path = BASE_DIR / '.dev-secret'
+    if not key_path.exists():
+        try:
+            with key_path.open('x', encoding='utf-8') as key_file:
+                key_file.write(__import__('secrets').token_urlsafe(50))
+        except FileExistsError:
+            pass
+    SECRET_KEY = key_path.read_text(encoding='utf-8')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
@@ -78,7 +88,7 @@ WSGI_APPLICATION = 'recommend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.environ.get('MUSIC_DATABASE_PATH', str(BASE_DIR / 'db.sqlite3')),
     }
 }
 
@@ -130,3 +140,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
+
+MUSIC_FEATURE_PATH = os.environ.get('MUSIC_FEATURE_PATH', str(BASE_DIR.parent / 'data' / 'features.json'))
+LOGIN_REDIRECT_URL = '/'
