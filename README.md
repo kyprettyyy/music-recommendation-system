@@ -52,4 +52,4 @@ scripts/                       Data preparation and model training
 python recommend/manage.py test music
 ```
 
-[中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Data and training](docs/REAL_DATA.md) · [Acknowledgements](THIRD_PARTY.md)
+[Architecture](docs/ARCHITECTURE.md) · [Data and training](docs/REAL_DATA.md) · [Acknowledgements](THIRD_PARTY.md)
