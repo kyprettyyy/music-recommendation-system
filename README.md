@@ -45,7 +45,7 @@ Open http://127.0.0.1:8000/project . The inference module loads audio metadata a
 
 ## Training and validation limits
 
-The notebook retains historical experiments and requires adapting train/test paths, annotations, device settings and optional packages. A separate test-annotation file is referenced but absent from the supplied archive. Historical logs do not establish independently verified accuracy. This cleanup has not retrained the model or verified full audio inference.
+The notebook retains historical experiments and requires adapting train/test paths, annotations, device settings and optional packages. A subsequent ZIP inspection found 800 training recordings and 200 test recordings plus raw test annotations. The notebook expects a processed `_final.csv` file, so the raw annotations require conversion to the loader schema. Historical logs do not establish independently verified accuracy. This cleanup has not retrained the model or verified full audio inference.
 
 ## Credit
 
